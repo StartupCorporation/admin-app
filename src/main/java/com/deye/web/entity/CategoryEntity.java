@@ -29,7 +29,7 @@ public class CategoryEntity {
 
     /**
      * We save images from client side to MinIO.
-     * After saving, MinioService responds with an HTTP link to the image.
+     * After saving, MinioFileService responds with an HTTP link to the image.
      * FE uses this link to fetch the image.
      */
     @OneToOne(cascade = {CascadeType.REMOVE, CascadeType.PERSIST}, orphanRemoval = true)

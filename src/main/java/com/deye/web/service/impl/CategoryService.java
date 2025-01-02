@@ -7,6 +7,8 @@ import com.deye.web.entity.CategoryEntity;
 import com.deye.web.exception.EntityNotFoundException;
 import com.deye.web.mapper.CategoryMapper;
 import com.deye.web.repository.CategoryRepository;
+import com.deye.web.service.FileService;
+import com.deye.web.service.PublisherService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,7 +29,8 @@ import static com.deye.web.utils.error.ErrorMessageUtils.CATEGORY_NOT_FOUND_ERRO
 public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
-    private final MinioService minioService;
+    private final FileService fileService;
+    private final PublisherService publisherService;
 
     /**
      * Method for creating category to add new product type
@@ -40,10 +43,11 @@ public class CategoryService {
         CategoryEntity category = new CategoryEntity();
         category.setName(categoryDto.getName());
         category.setDescription(categoryDto.getDescription());
-        String fileName = minioService.upload(categoryDto.getImage());
+        String fileName = fileService.upload(categoryDto.getImage());
         category.setImage(fileName);
         categoryRepository.save(category);
         log.info("Category created: {}", category);
+        publisherService.onCategorySaved(category);
     }
 
     @Transactional
@@ -67,6 +71,7 @@ public class CategoryService {
         log.info("Deleting category by id: {}", id);
         categoryRepository.deleteById(id);
         log.info("Category deleted: {}", id);
+        publisherService.onCategoryDeleted(id);
     }
 
     @Transactional
@@ -82,13 +87,14 @@ public class CategoryService {
             log.info("Category new description is set");
         }
         if (categoryDto.getImage() != null) {
-            minioService.delete(category.getImage().getName());
-            String fileName = minioService.upload(categoryDto.getImage());
+            fileService.delete(category.getImage().getName());
+            String fileName = fileService.upload(categoryDto.getImage());
             category.setImage(fileName);
             log.info("Category new image is set");
         }
         categoryRepository.save(category);
         log.info("Category updated: {}", category);
+        publisherService.onCategorySaved(category);
     }
 
     private CategoryEntity getCategoryEntityById(UUID id) {

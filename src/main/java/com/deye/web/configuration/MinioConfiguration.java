@@ -1,27 +1,21 @@
 package com.deye.web.configuration;
 
+import com.deye.web.service.impl.ConfigService;
 import io.minio.MinioClient;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@RequiredArgsConstructor
 public class MinioConfiguration {
-
-    @Value("${minio.secretKey}")
-    private String secretKey;
-
-    @Value("${minio.accessKey}")
-    private String accessKey;
-
-    @Value("${minio.url}")
-    private String url;
+    private final ConfigService configService;
 
     @Bean
     public MinioClient minioClient() {
         return MinioClient.builder()
-                .credentials(secretKey, accessKey)
-                .endpoint(url)
+                .credentials(configService.getMinioSecretKey(), configService.getMinioAccessKey())
+                .endpoint(configService.getMinioUrl())
                 .build();
     }
 }
