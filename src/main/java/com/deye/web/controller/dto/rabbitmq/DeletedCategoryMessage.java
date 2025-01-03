@@ -10,7 +10,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
-public class DeleteCategoryMessage {
+public class DeletedCategoryMessage {
     private UUID id;
     private LocalDateTime created_at;
     private String event_type;

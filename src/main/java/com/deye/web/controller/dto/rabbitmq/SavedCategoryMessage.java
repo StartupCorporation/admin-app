@@ -10,7 +10,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
-public class UpsertCategoryMessage {
+public class SavedCategoryMessage {
     private UUID id;
     private LocalDateTime created_at;
     private String event_type;
