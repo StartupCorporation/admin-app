@@ -14,5 +14,5 @@ public class CategoryView {
     private UUID id;
     private String name;
     private String description;
-    private String imageLink;
+    private String image;
 }

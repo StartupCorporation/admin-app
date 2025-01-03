@@ -26,12 +26,7 @@ public class CategoryEntity {
     @Column(unique = true)
     private String name;
     private String description;
-
-    /**
-     * We save images from client side to MinIO.
-     * After saving, MinioService responds with an HTTP link to the image.
-     * FE uses this link to fetch the image.
-     */
+    
     @OneToOne(cascade = {CascadeType.REMOVE, CascadeType.PERSIST}, orphanRemoval = true)
     private FileEntity image;
 
