@@ -1,7 +1,8 @@
 package com.deye.web.exception.handler;
 
 import com.deye.web.exception.EntityNotFoundException;
-import com.deye.web.exception.MinioException;
+import com.deye.web.exception.EventMessageException;
+import com.deye.web.exception.FileStorageException;
 import com.deye.web.exception.response.DatabaseConstraintErrorResponseDto;
 import com.deye.web.exception.response.ErrorResponseDto;
 import com.deye.web.utils.error.ErrorCodeUtils;
@@ -23,8 +24,16 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class CommonExceptionHandler {
 
-    @ExceptionHandler(value = MinioException.class)
-    public ResponseEntity<ErrorResponseDto> handleMinioException(MinioException e) {
+    @ExceptionHandler(value = FileStorageException.class)
+    public ResponseEntity<ErrorResponseDto> handleFileStorageException(FileStorageException e) {
+        ErrorResponseDto errorResponseDto = new ErrorResponseDto();
+        errorResponseDto.setCode(e.getCode());
+        errorResponseDto.setMessage(e.getMessage());
+        return new ResponseEntity<>(errorResponseDto, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(value = EventMessageException.class)
+    public ResponseEntity<ErrorResponseDto> handleEventMessageException(EventMessageException e) {
         ErrorResponseDto errorResponseDto = new ErrorResponseDto();
         errorResponseDto.setCode(e.getCode());
         errorResponseDto.setMessage(e.getMessage());

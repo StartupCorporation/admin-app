@@ -1,6 +1,6 @@
 package com.deye.web.service.impl;
 
-import com.deye.web.exception.MinioException;
+import com.deye.web.exception.FileStorageException;
 import com.deye.web.service.FileService;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
@@ -38,7 +38,7 @@ public class MinioFileService implements FileService {
             log.info("Successfully uploaded image: {}", fileName);
         } catch (Exception e) {
             log.error("Error occurred while uploading image file", e);
-            throw new MinioException(MINIO_UPLOAD_FILE_ERROR_CODE, MINIO_UPLOAD_FILE_ERROR_MESSAGE);
+            throw new FileStorageException(MINIO_UPLOAD_FILE_ERROR_CODE, MINIO_UPLOAD_FILE_ERROR_MESSAGE);
         }
     }
 
@@ -52,7 +52,7 @@ public class MinioFileService implements FileService {
             minio.removeObject(removeObjectArgs);
         } catch (Exception e) {
             log.error("Error occurred while deleting image file", e);
-            throw new MinioException(MINIO_DELETE_FILE_ERROR_CODE, MINIO_DELETE_FILE_ERROR_MESSAGE);
+            throw new FileStorageException(MINIO_DELETE_FILE_ERROR_CODE, MINIO_DELETE_FILE_ERROR_MESSAGE);
         }
     }
 }

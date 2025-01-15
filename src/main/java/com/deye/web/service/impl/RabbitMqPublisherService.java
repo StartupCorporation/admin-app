@@ -20,7 +20,7 @@ public class RabbitMqPublisherService implements PublisherService {
 
     @Override
     public void onCategorySaved(CategoryEntity category) {
-        String message = rabbitMqMessageMapper.toUpsertCategoryMessage(category);
+        String message = rabbitMqMessageMapper.toSavedCategoryMessage(category);
         try {
             rabbitMqProducer.send(RabbitMqUtil.EXCHANGE_NAME, RabbitMqUtil.CATEGORY_CONSUMER_ROUTING_KEY, message);
             log.info("Message on category saved successfully sent to RabbitMQ, message:{}", message);

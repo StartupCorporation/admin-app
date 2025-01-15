@@ -9,4 +9,5 @@ public class ErrorCodeUtils {
     public static final Integer CATEGORY_NOT_FOUND_ERROR_CODE = 3;
     public static final Integer REQUEST_BODY_VALIDATION_ERROR_CODE = 4;
     public static final Integer DATABASE_ERROR_CODE = 5;
+    public static final Integer EVENT_MESSAGE_NOT_PROCEED_ERROR_CODE = 6;
 }
