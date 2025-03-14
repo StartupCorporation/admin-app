@@ -1,16 +1,15 @@
-package com.deye.web.controller.view;
+package com.deye.web.controller.dto.response;
 
 import com.deye.web.entity.attribute.definition.AttributeDefinition;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Map;
 import java.util.UUID;
 
 @Getter
 @Setter
-public class AttributeView {
+public class AttributeResponseDto {
     private UUID id;
     private String name;
     private String description;

@@ -1,7 +1,7 @@
 package com.deye.web.controller;
 
 import com.deye.web.controller.dto.CreateAttributeDto;
-import com.deye.web.controller.view.AttributeView;
+import com.deye.web.controller.dto.response.AttributeResponseDto;
 import com.deye.web.service.impl.AttributeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,12 +17,12 @@ public class AttributeController {
     private final AttributeService attributeService;
 
     @GetMapping
-    public List<AttributeView> getAttributes() {
+    public List<AttributeResponseDto> getAttributes() {
         return attributeService.getAll();
     }
 
     @GetMapping("/{id}")
-    public AttributeView getAttributeById(@PathVariable("id") UUID id) {
+    public AttributeResponseDto getAttributeById(@PathVariable("id") UUID id) {
         return attributeService.getById(id);
     }
 

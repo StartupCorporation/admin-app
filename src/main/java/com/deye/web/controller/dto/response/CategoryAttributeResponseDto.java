@@ -1,4 +1,4 @@
-package com.deye.web.controller.view;
+package com.deye.web.controller.dto.response;
 
 import com.deye.web.entity.attribute.definition.AttributeDefinition;
 import lombok.Getter;
@@ -8,7 +8,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class CategoryAttributeView {
+public class CategoryAttributeResponseDto {
     private UUID id;
     private String name;
     private AttributeDefinition definition;

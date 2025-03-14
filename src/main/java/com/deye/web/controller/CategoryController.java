@@ -2,7 +2,7 @@ package com.deye.web.controller;
 
 import com.deye.web.controller.dto.CreateCategoryDto;
 import com.deye.web.controller.dto.UpdateCategoryDto;
-import com.deye.web.controller.view.CategoryView;
+import com.deye.web.controller.dto.response.CategoryResponseDto;
 import com.deye.web.service.impl.CategoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,12 +20,12 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public ResponseEntity<Set<CategoryView>> getCategories() {
+    public ResponseEntity<Set<CategoryResponseDto>> getCategories() {
         return new ResponseEntity<>(categoryService.getAll(), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CategoryView> getCategory(@PathVariable UUID id) {
+    public ResponseEntity<CategoryResponseDto> getCategory(@PathVariable UUID id) {
         return new ResponseEntity<>(categoryService.getById(id), HttpStatus.OK);
     }
 

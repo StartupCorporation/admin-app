@@ -3,7 +3,7 @@ package com.deye.web.controller;
 import com.deye.web.controller.dto.CreateProductDto;
 import com.deye.web.controller.dto.ProductFilterDto;
 import com.deye.web.controller.dto.UpdateProductDto;
-import com.deye.web.controller.view.ProductView;
+import com.deye.web.controller.dto.response.ProductResponseDto;
 import com.deye.web.service.impl.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,15 +22,15 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping
-    public ResponseEntity<Page<ProductView>> getAll(@RequestParam int page,
-                                                    @RequestParam int size,
-                                                    @ModelAttribute @Valid ProductFilterDto productFilterDto) {
+    public ResponseEntity<Page<ProductResponseDto>> getAll(@RequestParam int page,
+                                                           @RequestParam int size,
+                                                           @ModelAttribute @Valid ProductFilterDto productFilterDto) {
         Pageable pageable = PageRequest.of(page, size);
         return ResponseEntity.ok(productService.getAll(productFilterDto, pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductView> getById(@PathVariable UUID id) {
+    public ResponseEntity<ProductResponseDto> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(productService.getById(id));
     }
 

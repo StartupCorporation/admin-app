@@ -1,8 +1,8 @@
 package com.deye.web.util.mapper;
 
-import com.deye.web.controller.view.CategoryView;
+import com.deye.web.controller.dto.response.CategoryResponseDto;
 import com.deye.web.entity.CategoryEntity;
-import com.deye.web.service.impl.ConfigService;
+import com.deye.web.service.impl.MinioConfigService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -10,14 +10,14 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CategoryMapper {
     private final AttributeMapper attributeMapper;
-    private final ConfigService configService;
+    private final MinioConfigService minioConfigService;
 
-    public CategoryView toCategoryView(CategoryEntity category) {
-        return CategoryView.builder()
+    public CategoryResponseDto toCategoryView(CategoryEntity category) {
+        return CategoryResponseDto.builder()
                 .id(category.getId())
                 .name(category.getName())
                 .description(category.getDescription())
-                .image(configService.getMinioBucketName() + "/" + category.getImage().getName())
+                .image(minioConfigService.getBucketName() + "/" + category.getImage().getName())
                 .attributes(category.getCategoryAttributes().stream()
                         .map(categoryAttributeEntity -> attributeMapper.toCategoryAttributeView(categoryAttributeEntity.getAttribute()))
                         .toList())

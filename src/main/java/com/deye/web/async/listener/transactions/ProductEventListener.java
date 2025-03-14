@@ -1,8 +1,10 @@
 package com.deye.web.async.listener.transactions;
 
-import com.deye.web.async.listener.events.DeletedProductEvent;
-import com.deye.web.async.listener.events.SavedProductEvent;
-import com.deye.web.async.service.PublisherService;
+import com.deye.web.async.listener.transactions.events.DeletedProductEvent;
+import com.deye.web.async.listener.transactions.events.ReservationResultEvent;
+import com.deye.web.async.listener.transactions.events.SavedProductEvent;
+import com.deye.web.async.publisher.PublisherService;
+import com.deye.web.async.util.RabbitMqEvent;
 import com.deye.web.entity.ProductEntity;
 import com.deye.web.exception.TransactionConsistencyException;
 import com.deye.web.service.FileService;
@@ -80,6 +82,29 @@ public class ProductEventListener {
         } catch (Exception e) {
             log.error("Product image with name: {} deletion failed.", fileName);
             throw e;
+        }
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    public void onSuccessfulReservationResult(ReservationResultEvent event) {
+        processReservationResult(event);
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
+    public void onFailedReservationResult(ReservationResultEvent event) {
+        processReservationResult(event);
+    }
+
+    private void processReservationResult(ReservationResultEvent event) {
+        try {
+            UUID orderId = event.getOrderId();
+            RabbitMqEvent rabbitMqEvent = event.getRabbitMqEvent();
+            log.info("Reservation result: {}, for order id: {}. Publish message to message broker", rabbitMqEvent, orderId);
+            publisherService.onReservationResult(orderId, rabbitMqEvent);
+            log.info("Reservation result published successfully for order id: {}", orderId);
+        } catch (Exception e) {
+            log.error("Transaction consistency exception, rollback it");
+            throw new TransactionConsistencyException(e);
         }
     }
 }

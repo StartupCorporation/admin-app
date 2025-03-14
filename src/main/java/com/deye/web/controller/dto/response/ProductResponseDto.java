@@ -1,4 +1,4 @@
-package com.deye.web.controller.view;
+package com.deye.web.controller.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Getter
 @Builder
-public class ProductView {
+public class ProductResponseDto {
     private UUID id;
     private String name;
     private String description;
@@ -18,5 +18,5 @@ public class ProductView {
     private UUID categoryId;
     private String categoryName;
     private Set<String> images;
-    private List<AttributeView> attributes;
+    private List<AttributeResponseDto> attributes;
 }

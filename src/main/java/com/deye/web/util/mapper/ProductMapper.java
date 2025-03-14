@@ -1,9 +1,9 @@
 package com.deye.web.util.mapper;
 
-import com.deye.web.controller.view.AttributeView;
-import com.deye.web.controller.view.ProductView;
+import com.deye.web.controller.dto.response.AttributeResponseDto;
+import com.deye.web.controller.dto.response.ProductResponseDto;
 import com.deye.web.entity.ProductEntity;
-import com.deye.web.service.impl.ConfigService;
+import com.deye.web.service.impl.MinioConfigService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -13,15 +13,15 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class ProductMapper {
-    private final ConfigService configService;
+    private final MinioConfigService minioConfigService;
     private final AttributeMapper attributeMapper;
 
-    public ProductView toProductView(ProductEntity product) {
-        List<AttributeView> attributes = product.getAttributesValuesForProduct().stream()
+    public ProductResponseDto toProductView(ProductEntity product) {
+        List<AttributeResponseDto> attributes = product.getAttributesValuesForProduct().stream()
                 .map(attributeMapper::toAttributeView)
                 .toList();
-        String bucketUrl = configService.getMinioBucketName() + "/";
-        return ProductView.builder()
+        String bucketUrl = minioConfigService.getBucketName() + "/";
+        return ProductResponseDto.builder()
                 .id(product.getId())
                 .name(product.getName())
                 .description(product.getDescription())

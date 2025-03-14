@@ -16,4 +16,9 @@ public abstract class CommonException extends RuntimeException {
         super(throwable);
         code = ErrorCodeUtils.COMMON_ERROR_CODE;
     }
+
+    public CommonException(String message) {
+        super(message);
+        code = null;
+    }
 }

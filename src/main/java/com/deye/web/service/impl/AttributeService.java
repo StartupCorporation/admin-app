@@ -1,7 +1,7 @@
 package com.deye.web.service.impl;
 
 import com.deye.web.controller.dto.CreateAttributeDto;
-import com.deye.web.controller.view.AttributeView;
+import com.deye.web.controller.dto.response.AttributeResponseDto;
 import com.deye.web.entity.AttributeEntity;
 import com.deye.web.entity.attribute.definition.AttributeDefinition;
 import com.deye.web.exception.EntityNotFoundException;
@@ -39,9 +39,9 @@ public class AttributeService {
     }
 
     @Transactional
-    public List<AttributeView> getAll() {
+    public List<AttributeResponseDto> getAll() {
         log.info("Fetching all attributes");
-        List<AttributeView> attributes = attributeRepository.findAll().stream()
+        List<AttributeResponseDto> attributes = attributeRepository.findAll().stream()
                 .map(attributeMapper::toAttributeView)
                 .toList();
         log.info("Fetched {} attributes", attributes.size());
@@ -49,15 +49,15 @@ public class AttributeService {
     }
 
     @Transactional
-    public AttributeView getById(UUID id) {
+    public AttributeResponseDto getById(UUID id) {
         log.info("Fetching attribute by ID: {}", id);
-        AttributeView attributeView = attributeMapper.toAttributeView(attributeRepository.findById(id)
+        AttributeResponseDto attributeResponseDto = attributeMapper.toAttributeView(attributeRepository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("Attribute not found: id={}", id);
                     return new EntityNotFoundException(ErrorCodeUtils.ATTRIBUTE_NOT_FOUND_ERROR_CODE, ErrorMessageUtils.ATTRIBUTE_NOT_FOUND_ERROR_MESSAGE);
                 }));
-        log.info("Attribute found: id={}, name={}", id, attributeView.getName());
-        return attributeView;
+        log.info("Attribute found: id={}, name={}", id, attributeResponseDto.getName());
+        return attributeResponseDto;
     }
 
     @Transactional

@@ -21,12 +21,12 @@ import static com.deye.web.util.error.ErrorMessageUtils.MINIO_UPLOAD_FILE_ERROR_
 @RequiredArgsConstructor
 @Slf4j
 public class MinioFileService implements FileService {
-    private final ConfigService configService;
+    private final MinioConfigService minioConfigService;
     private final MinioClient minio;
 
     public void upload(MultipartFile file) {
         try (InputStream content = file.getInputStream()) {
-            String bucketName = configService.getMinioBucketName();
+            String bucketName = minioConfigService.getBucketName();
             String fileName = file.getOriginalFilename();
             PutObjectArgs putObjectArgs = PutObjectArgs.builder()
                     .bucket(bucketName)
@@ -43,7 +43,7 @@ public class MinioFileService implements FileService {
     }
 
     public void delete(String fileName) {
-        String bucketName = configService.getMinioBucketName();
+        String bucketName = minioConfigService.getBucketName();
         RemoveObjectArgs removeObjectArgs = RemoveObjectArgs.builder()
                 .bucket(bucketName)
                 .object(fileName)

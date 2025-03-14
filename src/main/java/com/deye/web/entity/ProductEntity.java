@@ -36,6 +36,7 @@ public class ProductEntity {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<AttributeProductValuesEntity> attributesValuesForProduct = new HashSet<>();
+    private int reservedQuantity;
 
     public void setImages(Set<String> fileNames) {
         for (String fileName : fileNames) {

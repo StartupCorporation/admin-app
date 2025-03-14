@@ -1,14 +1,17 @@
 package com.deye.web.service.impl;
 
-import com.deye.web.async.listener.events.DeletedProductEvent;
-import com.deye.web.async.listener.events.SavedProductEvent;
+import com.deye.web.async.listener.transactions.events.DeletedProductEvent;
+import com.deye.web.async.listener.transactions.events.ReservationResultEvent;
+import com.deye.web.async.listener.transactions.events.SavedProductEvent;
+import com.deye.web.async.util.RabbitMqEvent;
 import com.deye.web.controller.dto.CreateProductDto;
 import com.deye.web.controller.dto.ProductFilterDto;
+import com.deye.web.controller.dto.ReservationDto;
 import com.deye.web.controller.dto.UpdateProductDto;
-import com.deye.web.controller.view.ProductView;
+import com.deye.web.controller.dto.response.ProductResponseDto;
 import com.deye.web.entity.*;
+import com.deye.web.exception.dlq.ActionNotAllowedSkipDLQException;
 import com.deye.web.exception.EntityNotFoundException;
-import com.deye.web.exception.TransactionConsistencyException;
 import com.deye.web.repository.ProductRepository;
 import com.deye.web.service.spricification.ProductFilterSpecification;
 import com.deye.web.util.error.ErrorCodeUtils;
@@ -33,12 +36,12 @@ import java.util.stream.Collectors;
 public class ProductService {
     private final ApplicationEventPublisher eventPublisher;
     private final CategoryService categoryService;
-    private final ConfigService configService;
+    private final MinioConfigService minioConfigService;
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final ProductFilterSpecification productFilterSpecification;
 
-    @Transactional(rollbackFor = TransactionConsistencyException.class)
+    @Transactional
     public void save(CreateProductDto createProductDto) {
         log.info("Starting to save product: {}", createProductDto.getName());
 
@@ -86,7 +89,7 @@ public class ProductService {
     }
 
     @Transactional
-    public Page<ProductView> getAll(ProductFilterDto productFilterDto, Pageable pageable) {
+    public Page<ProductResponseDto> getAll(ProductFilterDto productFilterDto, Pageable pageable) {
         log.info("Fetching all products");
         Page<ProductEntity> products = productRepository.findAll(productFilterSpecification.filterBy(productFilterDto), pageable);
         log.info("Found {} products", products.getTotalElements());
@@ -94,14 +97,14 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductView getById(UUID id) {
+    public ProductResponseDto getById(UUID id) {
         log.info("Fetching product by ID={}", id);
         ProductEntity product = getProductEntityById(id);
         log.info("Product found: {} ({})", product.getName(), product.getId());
         return productMapper.toProductView(product);
     }
 
-    @Transactional(rollbackFor = TransactionConsistencyException.class)
+    @Transactional
     public void deleteById(UUID id) {
         log.info("Deleting product by ID={}", id);
         ProductEntity product = getProductEntityById(id);
@@ -110,7 +113,7 @@ public class ProductService {
         eventPublisher.publishEvent(new DeletedProductEvent(id, product.getImagesNames()));
     }
 
-    @Transactional(rollbackFor = TransactionConsistencyException.class)
+    @Transactional
     public void update(UUID id, UpdateProductDto updateProductDto) {
         log.info("Updating product by ID={}", id);
         ProductEntity product = getProductEntityById(id);
@@ -137,7 +140,7 @@ public class ProductService {
             product.setImages(imagesNamesToAdd);
         }
         if (imagesNamesToRemove != null) {
-            String bucketName = configService.getMinioBucketName();
+            String bucketName = minioConfigService.getBucketName();
             imagesNamesToRemove = imagesNamesToRemove.stream()
                     .map(fileName -> {
                         if (StringUtils.contains(fileName, bucketName + "/")) {
@@ -169,5 +172,50 @@ public class ProductService {
                     log.error("Product with ID={} not found!", id);
                     return new EntityNotFoundException(ErrorCodeUtils.PRODUCT_NOT_FOUND_ERROR_CODE, ErrorMessageUtils.PRODUCT_NOT_FOUND_ERROR_MESSAGE);
                 });
+    }
+
+    @Transactional
+    public void reserveProducts(ReservationDto reservationDto) {
+        Map<UUID, Integer> productsIdsAndQuantity = reservationDto.getProductsIdsAndQuantity();
+        UUID orderId = reservationDto.getOrderId();
+        List<ProductEntity> products = getAllProductsByIdsForReservation(reservationDto);
+        for (ProductEntity product : products) {
+            Integer quantityToReserve = productsIdsAndQuantity.get(product.getId());
+            Integer alreadyReservedQuantity = product.getReservedQuantity();
+            Integer quantityOnStock = product.getStockQuantity();
+            Integer totalReservationQuantity = quantityToReserve + alreadyReservedQuantity;
+            if (quantityOnStock <= totalReservationQuantity) {
+                log.error("Quantity on stock is less then total reservation quantity for product: {}", product.getId());
+                eventPublisher.publishEvent(new ReservationResultEvent(orderId, RabbitMqEvent.FAILED_TO_RESERVE_PRODUCTS));
+                throw new ActionNotAllowedSkipDLQException("Quantity on stock is less then total reservation quantity");
+            }
+            product.setReservedQuantity(totalReservationQuantity);
+        }
+        productRepository.saveAll(products);
+        eventPublisher.publishEvent(new ReservationResultEvent(orderId, RabbitMqEvent.PRODUCTS_RESERVED_FOR_ORDER));
+    }
+
+    @Transactional
+    public void finishReservation(ReservationDto reservationDto) {
+        Map<UUID, Integer> productsIdsAndQuantity = reservationDto.getProductsIdsAndQuantity();
+        List<ProductEntity> products = getAllProductsByIdsForReservation(reservationDto);
+        for (ProductEntity product : products) {
+            Integer orderedQuantity = productsIdsAndQuantity.get(product.getId());
+            Integer reservedQuantity = product.getReservedQuantity();
+            Integer quantityOnStock = product.getStockQuantity();
+            product.setReservedQuantity(reservedQuantity - orderedQuantity);
+            product.setStockQuantity(quantityOnStock - orderedQuantity);
+        }
+        productRepository.saveAll(products);
+    }
+
+    private List<ProductEntity> getAllProductsByIdsForReservation(ReservationDto reservationDto) {
+        Map<UUID, Integer> productsIdsAndQuantity = reservationDto.getProductsIdsAndQuantity();
+        Set<UUID> productsIds = productsIdsAndQuantity.keySet();
+        List<ProductEntity> products = productRepository.findAllById(productsIds);
+        if (products.size() != productsIds.size()) {
+            throw new EntityNotFoundException(ErrorCodeUtils.PRODUCT_NOT_FOUND_ERROR_CODE, ErrorMessageUtils.PRODUCT_NOT_FOUND_ERROR_MESSAGE);
+        }
+        return products;
     }
 }
